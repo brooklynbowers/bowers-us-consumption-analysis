@@ -1,1 +1,155 @@
+# import necessary packages
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import altair as alt
+import statsmodels.api as sm
+
+from scipy import stats
+from sklearn import linear_model, metrics
+from sklearn.model_selection import train_test_split
+from tabulate import tabulate
+from scipy.stats import shapiro
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+# import data
+df = pd.read_excel('file.xlsx')
+df.head()
+
+###############################################
+
+# EDA 
+
+# 1. DATA CLEANING AND PREPROCESSING
+
+# here, address any potential issues with data quality or format
+# includes handling missing values, encoding categorical variables if necessary, and scaling features
+
+df.rename(columns={'Revenue  (Billion USD)': 'Revenue (Billion USD)'}, inplace=True)
+columns_to_check = ['Year', 'Consumption (Billion USD)', 'Revenue (Billion USD)', 'Population', 'Price Index']
+missing_values = df[columns_to_check].isnull().sum().reset_index()
+missing_values.columns = ['Column', 'Missing Values']
+print("Missing Values:\n", tabulate(missing_values, headers='keys', tablefmt='psql'))
+df_new = df[['Revenue (Billion USD)', 'Consumption (Billion USD)', 'Population', 'Price Index']]
+descriptive_stats = df_new.describe()
+descriptive_stats_df = descriptive_stats.transpose()
+print("Descriptive Statistics:\n", tabulate(descriptive_stats_df, headers='keys', tablefmt='psql'))
+
+
+df['Year'] = df['Year'].astype(str)
+data = {
+    "Metric": ["Null Values", "Zero Values"],
+    "Population": [df['Population'].isnull().sum(), (df['Population'] == 0).sum()],
+    "Price Index": [df['Price Index'].isnull().sum(), (df['Price Index'] == 0).sum()]
+}
+counts_df = pd.DataFrame(data)
+print(tabulate(counts_df, headers='keys', tablefmt='psql', showindex=False))
+
+############################################################
+
+# now, visualizing how consumption, revenue, population, and price index have changed over time
+
+# chart for consumption and revenue
+df_long = df.melt(id_vars='Year', value_vars=['Consumption (Billion USD)', 'Revenue (Billion USD)'],
+                  var_name='Type', value_name='USD (Billions)')
+
+consumption_revenue_chart = alt.Chart(df_long).mark_line().encode(
+    x=alt.X('Year:O', axis=alt.Axis(title='Year', labelExpr="datum.value % 5 === 0 ? datum.value : ''")),
+    y=alt.Y('USD (Billions)', axis=alt.Axis(title='USD (Billions)')),
+    color=alt.Color('Type', legend=alt.Legend(title="Legend")),
+    tooltip=['Year', 'Type', 'USD (Billions)']
+).properties(
+    title='Consumption and Revenue Over Time',
+    width=600,
+    height=300
+).interactive()
+
+# chart for population
+population_chart = (alt.Chart(df)
+    .mark_line(color='green')
+    .encode(
+        x=alt.X('Year:O', axis=alt.Axis(title='Year', labelExpr="datum.value % 5 === 0 ? datum.value : ''")),
+        y=alt.Y('Population', axis=alt.Axis(title='Population')),
+        tooltip=['Year', 'Population']
+    )
+    .properties(
+        title='Population Over Time',
+        width=600,
+        height=300
+    )
+).interactive()
+
+# chart for price index
+price_index_chart = (alt.Chart(df)
+    .mark_line(color='orange')
+    .encode(
+        x=alt.X('Year:O', axis=alt.Axis(title='Year', labelExpr="datum.value % 5 === 0 ? datum.value : ''")),
+        y=alt.Y('Price Index', axis=alt.Axis(title='Price Index')),
+        tooltip=['Year', 'Price Index']
+    )
+    .properties(
+        title='Price Index Over Time',
+        width=600,
+        height=300
+    )
+).interactive()
+
+# combining all charts into a single view
+final_chart = alt.vconcat(consumption_revenue_chart, population_chart, price_index_chart)
+
+final_chart
+
+######################################################
+
+# checking for correlations
+
+corr_matrix = df[['Consumption (Billion USD)', 'Revenue (Billion USD)', 'Population', 'Price Index', 'Year']].corr()
+print(tabulate(corr_matrix, headers='keys', tablefmt='psql', showindex='always', numalign="right", floatfmt=".2f"))
+
+corr_matrix_long = corr_matrix.reset_index().melt('index', var_name='Variable2', value_name='Correlation')
+corr_matrix_long.rename(columns={'index': 'Variable1'}, inplace=True)
+
+heatmap = alt.Chart(corr_matrix_long).mark_rect().encode(
+    x=alt.X('Variable1:N', title='Variable'),
+    y=alt.Y('Variable2:N', title='Variable'),
+    color=alt.Color('Correlation:Q', scale=alt.Scale(domain=[-1, 1], scheme='redblue')),
+    tooltip=['Variable1', 'Variable2', 'Correlation']
+).properties(
+    title='Correlation Matrix Heatmap',
+    width=400,
+    height=400
+)
+
+text = heatmap.mark_text(baseline='middle').encode(
+    text=alt.Text('Correlation:Q', format='.2f'),
+    color=alt.condition(
+        alt.datum.Correlation > 0.5,
+        alt.value('black'),
+        alt.value('black')
+    )
+)
+
+final_chart = heatmap + text
+final_chart.display()
+
+#######################################################
+
+# trend analysis
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
