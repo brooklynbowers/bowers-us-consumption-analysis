@@ -138,6 +138,113 @@ final_chart.display()
 
 # trend analysis
 
+# measure the year-over-year percentage change for consumption and population
+# use combo plot- bar and line chart
+# answering the question: do American residents adjust their consumption based on inflation during that period?
+# going to compare price index with consumption
+# then visualize the findings
+
+df['Consumption_pct_change'] = df['Consumption (Billion USD)'].pct_change() * 100
+df['Population_pct_change'] = df['Population'].pct_change() * 100
+bar_chart_population = alt.Chart(df).mark_bar(color='lightgreen').encode(
+    x='Year:O',
+    y=alt.Y('Population_pct_change', axis=alt.Axis(title='Population Change (%)')),
+    tooltip=['Year', 'Population_pct_change']
+).properties(
+    title='Year-over-Year Population Change',
+    width=600
+)
+
+line_chart_consumption = alt.Chart(df).mark_line(color='orange').encode(
+    x=alt.X('Year:O', axis=alt.Axis(title='Year', labelExpr="datum.value % 5 === 0 ? datum.value : ''")),
+    y=alt.Y('Consumption_pct_change', axis=alt.Axis(title='Consumption Change (%)')),
+    tooltip=['Year', 'Consumption_pct_change']
+).properties(
+    title='Year-over-Year Consumption Change',
+    width=600
+)
+
+combined_chart = alt.layer(bar_chart_population, line_chart_consumption).resolve_scale(
+    y='independent'
+).properties(
+    title="Population and Consumption Year-over-Year Change"
+)
+
+combined_chart
+
+chart_consumption = alt.Chart(df).mark_line(color='blue').encode(
+    x=alt.X('Year:O', axis=alt.Axis(title='Year', labelExpr="datum.value % 5 === 0 ? datum.value : ''")),
+    y=alt.Y('Consumption (Billion USD)', axis=alt.Axis(title='Consumption (Billion USD)')),
+    tooltip=['Year', 'Consumption (Billion USD)']
+).properties(
+    title='Consumption Over Time',
+    width=600
+)
+
+
+chart_price_index = alt.Chart(df).mark_line(color='red').encode(
+    x=alt.X('Year:O', axis=alt.Axis(title='Year', labelExpr="datum.value % 5 === 0 ? datum.value : ''")),
+    y=alt.Y('Price Index', axis=alt.Axis(title='Price Index'), scale=alt.Scale(domain=[0, df['Price Index'].max() + 10])),
+    tooltip=['Year', 'Price Index']
+).properties(
+    title='Price Index Over Time',
+    width=600
+)
+
+consumption_inflation_chart = alt.layer(chart_consumption, chart_price_index).resolve_scale(
+    y='independent'
+).properties(
+    title="Consumption vs. Price Index Over Time"
+)
+
+consumption_inflation_chart
+
+
+# now, investigating the behavior of variables during notable economic events such as the 2008 financial crisis and the COVID-19 pandemic
+# going to use a combo plot: stacked area for consumption and revenue, and line for population
+# then will visualize the findings
+
+area_chart = alt.Chart(df).mark_area(opacity=0.6).encode(
+    x=alt.X('Year:O', axis=alt.Axis(title='Year', labelExpr="datum.value % 5 === 0 ? datum.value : ''")),
+    y=alt.Y('value:Q', axis=alt.Axis(title='USD (Billions)'), stack='zero'),  # Sum values, specify as quantitative
+    color=alt.Color('Type:N', legend=alt.Legend(title='Legend')),  # Type as nominal
+    tooltip=[alt.Tooltip('Year:O'), alt.Tooltip('Type:N'), alt.Tooltip('value:Q')]
+).transform_fold(
+    fold=['Consumption (Billion USD)', 'Revenue (Billion USD)'],  # Folding to stack
+    as_=['Type', 'value']  # Define transformation columns as 'Type' and 'value'
+)
+
+line_chart = alt.Chart(df).mark_line(color='black').encode(
+    x=alt.X('Year:O', axis=alt.Axis(title='Year', labelExpr="datum.value % 5 === 0 ? datum.value : ''")),
+    y=alt.Y('Population:Q', axis=alt.Axis(title='Population')),  # Population as quantitative
+    tooltip=[alt.Tooltip('Year:O'), alt.Tooltip('Population:Q')]
+)
+
+final_chart = alt.layer(area_chart, line_chart).resolve_scale(
+    y='independent'  # Independent scaling for y-axes
+).properties(
+    title="Impact of Economic Events on Consumption, Revenue, and Population",
+    width=800,
+    height=400
+)
+
+final_chart
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
