@@ -22,7 +22,7 @@ df.head()
 
 # EDA 
 
-# 1. DATA CLEANING AND PREPROCESSING
+# DATA CLEANING AND PREPROCESSING
 
 # here, address any potential issues with data quality or format
 # includes handling missing values, encoding categorical variables if necessary, and scaling features
