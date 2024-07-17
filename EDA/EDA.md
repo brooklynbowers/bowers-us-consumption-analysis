@@ -9,7 +9,8 @@ df = pd.read_excel('file.xlsx')
 df.head()
 ```
 
-![head of data](https://drive.google.com/file/d/1max0tGaqenFY7Ee21stUXelRP8OKH1SL/view?usp=sharing)
+<img width="766" alt="Screenshot 2024-07-16 at 10 48 48 PM" src="https://github.com/user-attachments/assets/996ae9e5-d9d5-4044-83fb-37156b2b7b9d">
+
 
 
 
